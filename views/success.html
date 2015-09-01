@@ -1,0 +1,33 @@
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script src="/public/js/bootstrap.min.js"></script>
+	<script src="/public/js/form.js"></script>
+	<link rel="stylesheet" href="/public/css/bootstrap.min.css">
+	<title>Login!</title>
+	<script>
+		setTimeout(function(){
+			console.log("Explode");
+			window.location="/login/";
+		},5000);
+	</script>
+</head>
+<body>
+	<style type="text/css">
+		.submit{
+			width:100%;
+		}
+		@media(min-width:768px){
+			.submit{
+				width: inherit;
+			}		
+		}
+	</style>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<h1>Welcome %%username%%!</h1>
+				<p>Welcome %%username%%, your account has been created. The next step is to login and customize your profile! You should be redirected in a few seconds. If not click <a href="/login/">here</a> to be redirected.</p>
+			</div>
+		</div>
+	</div>
+</body>

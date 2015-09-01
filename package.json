@@ -1,0 +1,21 @@
+{
+  "name": "SocialL1nk",
+  "version": "1.0.0",
+  "description": "A social network for twats",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "social",
+    "network"
+  ],
+  "author": "me",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.13.3",
+    "express": "^4.13.3",
+    "http": "0.0.0",
+    "mongoose": "^4.1.3"
+  }
+}

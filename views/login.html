@@ -1,0 +1,51 @@
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script src="/public/js/bootstrap.min.js"></script>
+	<script src="/public/js/form.js"></script>
+	<link rel="stylesheet" href="/public/css/bootstrap.min.css">
+	<title>Login!</title>
+	<script>
+		window.onload=function(){
+			document.getElementById("form").onsubmit=post;
+		};
+		function post(){
+			sendHTTP("POST","/login/",getInfo(),function(data){
+					console.log(data);
+					var result = JSON.parse(data);
+					if(result.error){
+						window.location="/feed/";
+					} else {
+						alert("Invalid Login: \n"+result.errorMessage);
+					}
+			});
+			return false;
+		}
+	</script>
+</head>
+<body>
+	<style type="text/css">
+		.submit{
+			width:100%;
+		}
+		@media(min-width:768px){
+			.submit{
+				width: inherit;
+			}		
+		}
+	</style>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<h1>Log In</h1>
+				<div class="form-group">
+					<form id="form" class="form-inline" method="POST" >
+						<label>Username</label><br/><input type="text" name="username" id="username" class="form-control"><span id="userStatus"></span><br/>
+						<label>Password</label><br/><input type="password" name="pass1" id="pass1" class="form-control"><span id="passStatus"></span>
+						<br/><button id="submit" type="submit" class="submit btn btn-primary">Submit</button>
+						<br/>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>

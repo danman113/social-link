@@ -1,0 +1,160 @@
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script src="/public/js/bootstrap.min.js"></script>
+	<script src="/public/js/form.js"></script>
+	<link rel="stylesheet" href="/public/css/bootstrap.min.css">
+	<script>
+	window.onload=function(){
+		document.getElementById("form").onsubmit=function(){
+			validateForm();
+			return false;
+		};
+		var validateName=function(){
+			var name=document.getElementById("username").value;
+			if(name.length>4 && name.match(/\w+/g).length<=1){
+				console.log("Checking name");
+				sendHTTP("GET","/signup/"+name.toLowerCase(),{},function(data){
+					var result=JSON.parse(data);
+					if(result.error){
+						document.getElementById("userStatus").innerHTML=" Username taken";
+						return false;
+					} else {
+						document.getElementById("userStatus").innerHTML=" Valid username";
+						return true;
+					}
+				});
+			} else {
+				document.getElementById("userStatus").innerHTML=" Username must be over 4 characters and not have any spaces";
+				return false;
+			}
+		};
+		var confirmPass=function(){
+			var p1=document.getElementById("pass1").value;
+			var p2=document.getElementById("pass2").value;
+			if(p1==p2 && p1.length>=7){
+				document.getElementById("passStatus").innerHTML= " Good";
+				return true;
+			} else {
+				document.getElementById("passStatus").innerHTML= " Passwords must be the same and longer than 7 characters";
+				return false;
+			}
+		};
+		var validateEmail = function(){
+			var email=document.getElementById("email").value.trim();
+			var val=email.search(/[a-zA-Z0-9]+(?:(\.|_)[A-Za-z0-9!#$%&'*+/=?^`{|}~-]+)*@(?!([a-zA-Z0-9]*\.[a-zA-Z0-9]*\.[a-zA-Z0-9]*\.))(?:[A-Za-z0-9](?:[a-zA-Z0-9-]*[A-Za-z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?/g);
+			if(val==0){
+				document.getElementById("emailStatus").innerHTML=" Good";
+				return true;
+			} else {
+				document.getElementById("emailStatus").innerHTML=" Invalid Email";
+				return false;
+			}
+		}
+		var validateYear = function(){
+			if(document.getElementById("dob").value!=""){
+				var date = document.getElementById("dob").value.split("-");
+				var dob= new Date(parseInt(date[0]), parseInt(date[1]), parseInt(date[2]));
+				var diff = Math.abs(Date.now() - dob.getTime());
+				var age=Math.abs(new Date(diff).getUTCFullYear() - 1970);
+				if(age>=16){
+					document.getElementById("dobStatus").innerHTML=" Good";
+					return true;
+				} else {
+					document.getElementById("dobStatus").innerHTML=" Please enter valid date of birth. You must be 16 and older.";
+					return false;
+				}
+				
+			} else {
+				document.getElementById("dobStatus").innerHTML=" Please enter valid date of birth. You must be 16 and older.";
+				return false;
+			}
+		};
+		var validateForm = function(){
+			var errors="";
+			var name=document.getElementById("username").value;
+			if(name.length>4){
+				sendHTTP("GET","/signup/"+name.toLowerCase(),{},function(data){
+					var result=JSON.parse(data);
+					if(result.error){
+						errors+="Username taken\n";
+					}
+					validate(errors);
+				});
+			} else {
+				errors+="Username must be over 4 characters and not contain spaces\n";
+				validate(errors);
+			}
+		};
+		var validate=function(error){
+			error+=confirmPass()?"":"Passwords must match and be longer than 7 characters\n";
+			error+=validateEmail()?"":"Email must be valid\n";
+			error+=validateYear()?"":"You must be above 16 to join\n";
+			error+=document.getElementById("tos").checked?"":"You must agree to the TOS\n";
+			if(error==""){
+				console.log("Successful form");
+				sendHTTP("POST","/signup/",getInfo(),function(data){
+					console.log(data);
+					var error;
+					try{
+						error=JSON.parse(data);
+					} catch (e){
+						alert("An unknown error happened. Please try again.");
+						return false;
+					}
+					if(!error.error){
+						alert(error.errorMessage);
+					} else {
+						window.location="/signupSuccess/"+document.getElementById("username").value;
+					}
+				});
+
+			} else {
+				alert(error);
+				return false;
+			}
+		}
+		document.getElementById("username").onchange=validateName;
+		document.getElementById("username").oninput=validateName;
+		document.getElementById("pass1").onchange=confirmPass;
+		document.getElementById("pass1").oninput=confirmPass;
+		document.getElementById("pass2").onchange=confirmPass;
+		document.getElementById("pass2").oninput=confirmPass;
+		document.getElementById("email").onchange=validateEmail;
+		document.getElementById("email").oninput=validateEmail;
+		document.getElementById("dob").onchange=validateYear;
+		document.getElementById("dob").oninput=validateYear;
+	}
+	</script>
+	<title>Sign Up!</title>
+</head>
+<body>
+	<style type="text/css">
+		.submit{
+			width:100%;
+		}
+		@media(min-width:768px){
+			.submit{
+				width: inherit;
+			}		
+		}
+	</style>
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<h1>Sign Up</h1>
+				<div class="form-group">
+					<form id="form" class="form-inline">
+						<label>Username</label><br/><input type="text" name="username" id="username" class="form-control"><span id="userStatus"></span><br/>
+						<label>Email</label><br/><input type="email" name="email" id="email" class="form-control"><span id="emailStatus"></span><br/>
+						<label>Password</label><br/><input type="password" name="pass1" id="pass1" class="form-control"><span id="passStatus"></span>
+						<br/><input type="password" name="pass2" id="pass2" class="form-control"><br/>
+						<label>Date of Birth</label><br/><input type="date" name="dob" id="dob" class="form-control"><span id="dobStatus"></span><br/>
+						<label>I agree to the TOS</label><br/><input type="checkbox" name="tos" id="tos"><span id="tosStatus"></span><br/>
+						<br/><button id="submit" type="submit" class="submit btn btn-primary">Submit</button>
+						<br/>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
