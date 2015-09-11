@@ -12,10 +12,11 @@
 			sendHTTP("POST","/login/",getInfo(),function(data){
 					console.log(data);
 					var result = JSON.parse(data);
+					console.log(result.lastAttempt - new Date());
 					if(result.error){
 						window.location="/feed/";
 					} else {
-						alert("Invalid Login: \n"+result.errorMessage);
+						alert("Invalid Login: \n"+result.errorMessage+"\nRemaining attempts: "+(5-result.attempts));
 					}
 			});
 			return false;

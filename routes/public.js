@@ -1,6 +1,7 @@
 var express=require("express");
 var router=express.Router();
 var fs=require("fs");
+var path=require("path")
 module.exports=function(database,settings){
 	var approvedFiletypes=settings.extensions.split(" ");
 	for(var i=0;i<approvedFiletypes.length;i++)
@@ -23,12 +24,10 @@ module.exports=function(database,settings){
 }
 
 function getFile(pathname,req,res){
-	var directory=__dirname.split("\\");
-	directory.pop();
-	var path=directory.join("\\");
-	fs.readFile(path+"\\"+pathname,function(err,file){
+	var filePath = path.resolve("./"+pathname);
+	fs.readFile(filePath,function(err,file){
 		if(!err){
-			res.sendFile(path+"/"+pathname);
+			res.sendFile(filePath);
 		}else{
 			res.sendStatus(404);
 		}

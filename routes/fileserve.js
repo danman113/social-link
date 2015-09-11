@@ -18,7 +18,6 @@ module.exports=function(database,settings){
 			}
 		}
 		console.log("Folders used as filedirectories: ");
-		console.log(folders);
 		for (var i = 0; i<folders.length; i++) {
 			router.get(folders[i],filesystem);
 			console.log(folders[i]);
@@ -33,7 +32,6 @@ function filesystem(req, res, next){
 	console.log(pathname);
 	fs.stat("./"+pathname,function(err, stats){
 		if(!err){
-			console.log(stats);
 			if(stats.isDirectory()){
 				parser("../"+pathname+"/index.html",{},function(err, data){
 					if(!err){
