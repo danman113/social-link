@@ -13,11 +13,19 @@
 			sendHTTP("POST","/login/",getInfo(),function(data){
 					console.log(data);
 					var result = JSON.parse(data);
-					console.log(result.lastAttempt - new Date());
+					console.log(new Date(result.lastAttempt) - new Date());
 					if(result.error){
 						window.location="/feed/";
 					} else {
-						alert("Invalid Login: \n"+result.errorMessage+"\nRemaining attempts: "+(5-result.attempts));
+						var remainingTime=new Date(new Date(result.lastAttempt).getTime()+1000*60*2);
+						if(document.getElementById("attempts").style.display=="none")
+							$("#attempts").show(250);
+						if((5-result.attempts)>0)
+							document.getElementById("attempts").innerHTML="<strong>Incorrect login. </strong>Remaining Attempts: "+(5-result.attempts);
+						else
+							document.getElementById("attempts").innerHTML="<strong>Incorrect login. </strong> No remaining attempts, please try again at "+(remainingTime.getHours()+":"+remainingTime.getMinutes()+":"+remainingTime.getSeconds());
+						setTimeout(function(){$("#attempts").hide(250);},5000);
+						//alert("Invalid Login: \n"+result.errorMessage+"\nRemaining attempts: "+(5-result.attempts));
 					}
 			});
 			return false;
@@ -39,6 +47,9 @@
 		<div class="row">
 			<div class="col-md-12">
 				<h1>Log In</h1>
+				<div class="alert alert-danger" id="attempts" style="display:none;" role="alert">
+					Remaining Attempts: 5
+				</div>
 				<div class="form-group">
 					<form id="form" class="form-inline" method="POST" >
 						<label>Username</label><br/><input type="text" name="username" id="username" class="form-control"><span id="userStatus"></span><br/>

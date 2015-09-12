@@ -56,12 +56,15 @@ module.exports=function(database,settings){
 		var dob= new Date(parseInt(date[0]), parseInt(date[1]), parseInt(date[2]));
 		var salt=Math.random()*0xffffffff+0xfff;
 		var saltParse= salt.toString().split(".");
+		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 		var userSchema={
 			username:req.body.username,
 			password:encrypt(saltParse[0]+req.body.pass1+saltParse[1], req.body.username),
 			friends:[],
+			powerlevel:5,
 			email:req.body.email,
 			salt:salt,
+			passwordReset:false,
 			messages:[],
 			about:{
 				firstName:"",
@@ -79,7 +82,9 @@ module.exports=function(database,settings){
 				image:""
 			},
 			settings:{
-				hidden:false
+				hidden:false,
+				creationIP:ip,
+				creationDate:new Date()
 			}
 		}
 		var newFriend = new database.user(userSchema);

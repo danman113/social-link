@@ -5,16 +5,22 @@ var parser = require("../lib/viewParser.js");
 var session = require("express-session");
 module.exports=function(database,settings){
 	router.get("/login/",function(req, res){
-		parser("login.html",{},function(err, data){
-			res.send(data);
-		});
+		if(req.session.user){
+			res.send("Already logged in");
+		} else {
+			parser("login.html",{},function(err, data){
+				res.send(data);
+			});
+		}
 	});
 	router.post("/login/",function(req, res){
+		//intializes session data if not currently there
 		req.session.loginAttempts=req.session.loginAttempts?req.session.loginAttempts:0;
 		req.session.lastAttempt=req.session.lastAttempt?new Date(req.session.lastAttempt):new Date();
-		console.log(req.session.lastAttempt);
-		if((new Date().getTime()-req.session.lastAttempt)>1000*60)
+		if((new Date().getTime()-req.session.lastAttempt)>1000*60*2){
+			req.session.lastAttempt=new Date();
 			req.session.loginAttempts=0;
+		}
 		var errorObj={error:0,errorMessage:"",attempts:req.session.loginAttempts,lastAttempt:req.session.lastAttempt};
 		if(req.session.loginAttempts<5){
 			database.user.find({username:req.body.username},function(err, data){
@@ -44,6 +50,7 @@ module.exports=function(database,settings){
 							errorObj.error=1;
 							errorObj.errorMessage="Login successful";
 							errorObj.attempts=req.session.loginAttempts;
+							req.session.user={username:data[0].username,powerlevel:data[0].powerlevel};
 							res.send(errorObj);
 						} else {
 							req.session.loginAttempts++;
