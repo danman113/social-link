@@ -5,9 +5,12 @@ var parser=require("../lib/viewParser.js");
 module.exports=function(database, settings){
 	router.get("/feed/", function(req, res){
 		if(req.session.user){
-			res.send("Welcome " + req.session.user.username);
+			parser("feed.html",{"%%username%%":req.session.user.username},function(err, data){
+				res.send(data);
+			});
 		} else {
-			res.send("403");
+			res.status(403);
+			res.redirect("/403/feed");
 		}
 	});
 	return router;

@@ -10,8 +10,9 @@ module.exports=function(database,settings){
 				res.redirect("/");
 			});
 		} else {
-			res.send("403");
+			res.status(403);
+			res.redirect("/403/logout");
 		}
 	});
 	return router;
-}
+};
