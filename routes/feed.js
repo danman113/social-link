@@ -10,8 +10,8 @@ module.exports=function(database, settings){
 			});
 		} else {
 			res.status(403);
-			res.redirect("/403/feed");
+			res.redirect("/login/");
 		}
 	});
 	return router;
-}
+};

@@ -50,7 +50,7 @@ module.exports=function(database,settings){
 							errorObj.error=1;
 							errorObj.errorMessage="Login successful";
 							errorObj.attempts=req.session.loginAttempts;
-							req.session.user={username:data[0].username,powerlevel:data[0].powerlevel};
+							req.session.user={username:data[0].username,powerlevel:data[0].powerlevel,id:data[0]._id};
 							res.send(errorObj);
 						} else {
 							req.session.loginAttempts++;
