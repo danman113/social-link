@@ -27,7 +27,7 @@ module.exports=function(database,settings){
 		});
 	});
 	router.post("/signup/",function(req, res){
-		req.body.username=(/\w+/g).exec(req.body.username)[0].toLowerCase();
+		req.body.username=(/\w+/g).exec(req.body.username)[0].toLowerCase().trim();
 		database.user.find({username:req.body.username}, function(err, data){
 			if(err){
 				console.log(err);
@@ -40,10 +40,13 @@ module.exports=function(database,settings){
 				} else if (req.body.pass1 != req.body.pass2){
 					res.send("{\"error\":0,\"errorMessage\":\"Invalid Password\"}");
 					return false;
-				} else if (req.body.email.search(/[a-zA-Z0-9]+(?:(\.|_)[A-Za-z0-9!#$%&'*+/=?^`{|}~-]+)*@(?!([a-zA-Z0-9]*\.[a-zA-Z0-9]*\.[a-zA-Z0-9]*\.))(?:[A-Za-z0-9](?:[a-zA-Z0-9-]*[A-Za-z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?/g)>0){
+				} else if (req.body.username.length < 5){
+					res.send("{\"error\":0,\"errorMessage\":\"Username must be longer than 5 characters\"}");
+					return false;
+				}  else if (req.body.email.search(/[a-zA-Z0-9]+(?:(\.|_)[A-Za-z0-9!#$%&'*+/=?^`{|}~-]+)*@(?!([a-zA-Z0-9]*\.[a-zA-Z0-9]*\.[a-zA-Z0-9]*\.))(?:[A-Za-z0-9](?:[a-zA-Z0-9-]*[A-Za-z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?/g)>0){
 					res.send("{\"error\":0,\"errorMessage\":\"Invalid email\"}");
 					return false;
- 				} else {
+				} else {
 					addUser(req, res);
 					return true;
 				}
@@ -53,7 +56,7 @@ module.exports=function(database,settings){
 	function addUser(req, res){
 		var date = req.body.dob.split("-");
 		console.log(date);
-		var dob= new Date(parseInt(date[0]), parseInt(date[1]), parseInt(date[2]));
+		var dob= new Date(parseInt(date[0],10), parseInt(date[1],10), parseInt(date[2],10));
 		var salt=Math.random()*0xffffffff+0xfff;
 		var saltParse= salt.toString().split(".");
 		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -61,11 +64,13 @@ module.exports=function(database,settings){
 			username:req.body.username,
 			password:encrypt(saltParse[0]+req.body.pass1+saltParse[1], req.body.username),
 			friends:[],
+			posts:[],
 			powerlevel:5,
 			email:req.body.email,
 			salt:salt,
 			passwordReset:false,
 			messages:[],
+			request:[],
 			about:{
 				firstName:"",
 				lastName:"",
@@ -86,7 +91,7 @@ module.exports=function(database,settings){
 				creationIP:ip,
 				creationDate:new Date()
 			}
-		}
+		};
 		var newFriend = new database.user(userSchema);
 		newFriend.save();
 		res.send("{\"error\":1,\"errorMessage\":\"Successful form\"}");

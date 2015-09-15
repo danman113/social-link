@@ -22,8 +22,10 @@ module.exports=function(database,settings){
 						body+=(data[0].about.location.length<=1)?"":"<h2>Location</h2><p>"+data[0].about.location+"</p>";
 						body+=(data[0].about.education.length<=1)?"":"<h2>Education</h2><p>"+data[0].about.education+"</p>";
 						body+=(data[0].about.website.length<5)?"":"<h2>Website</h2><p><a target='_blank' href='http://"+data[0].about.website+"'>"+data[0].about.website+"</a></p>";
-						body+=(!data[0].about.relationship)?"":"<h2>"+(data[0].about.relationship?"In a relationship":"Single")+"</h2>";
+						body+="<h2>"+(data[0].about.relationship?"In a relationship":"Single")+"</h2>";
 						body+=(data[0].about.phone<40)?"":"<h2>Phone</h2><p><a href='tel:"+data[0].about.phone.toString()+"'>("+data[0].about.phone.toString().substr(0,3)+")-"+data[0].about.phone.toString().substr(3,3)+"-"+data[0].about.phone.toString().substr(6,4)+"</a></p>";
+						body+=(data[0].about.politics.length<1)?"":"<h2>Political Views</h2><p>"+data[0].about.politics+"</p>";
+						body+=(data[0].about.religion.length<1)?"":"<h2>Religion</h2><p>"+data[0].about.religion+"</p>";
 						body+=(data[0].about.about.length<5)?"":"<h2>About</h2><p>"+data[0].about.about+"</p>";
 					body+="</div>";
 				} else {

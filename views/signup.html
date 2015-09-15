@@ -12,7 +12,7 @@
 		};
 		var validateName=function(){
 			var name=document.getElementById("username").value;
-			if(name.length>4 && name.match(/\w+/g).length<=1){
+			if(name.trim().length>4 && name.match(/\w+/g).length<=1){
 				console.log("Checking name");
 				sendHTTP("GET","/signup/"+name.toLowerCase(),{},function(data){
 					var result=JSON.parse(data);

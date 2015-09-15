@@ -8,8 +8,12 @@ module.exports=function(database,settings){
 			res.send(data);
 		});
 	});
-	router.get("/403/:id",function(req, res, next){
-		parser("403.html",{"%%redirect%%":req.params.id},function(err, data){
+	router.get("/403/*",function(req, res, next){
+		var pathname=req._parsedUrl.pathname.substring(1,req._parsedUrl.pathname.length);
+		var paths=pathname.split("/");
+		paths.splice(0,1);
+		var directory=paths.join("/");
+		parser("403.html",{"%%redirect%%":directory},function(err, data){
 			res.send(data);
 		});
 	});

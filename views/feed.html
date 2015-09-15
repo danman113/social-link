@@ -56,7 +56,12 @@
 			<div class="row">
 				<div class="col-md-12">
 					<h1>%%username%%'s feed</h1>
-					
+					<div class="form-group">
+						<form id="post" action="/post/" class="form-inline" method="POST" >
+							<textarea type="" maxlength="200" name="post" id="post" class="form-control"></textarea><br/>
+							<button id="submit" type="submit" class="submit btn btn-primary">Post</button><br/>
+						</form>
+					</div>
 				</div>
 			</div>
 		</div>	
