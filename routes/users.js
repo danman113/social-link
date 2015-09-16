@@ -2,7 +2,57 @@ var express = require('express');
 var router = express.Router();
 var crypto = require("crypto");
 var parser=require("../lib/viewParser.js");
+var mongoose = require("mongoose");
 module.exports=function(database,settings){
+	router.get("/users/",function(req, res){
+		database.user.find().populate("friends").exec(function(err, data){
+			console.log(data);
+		});
+		res.send("Sent ;D");
+	});
+
+	router.post("/users/",function(req, res){
+		var ret=false;
+		if(req.session.user){
+			console.log(req.body);
+			if (req.body.id){
+				database.user.find({username:req.session.user.username},function(err, data){
+					if (err){
+						res.status(403);
+						res.redirect("/403/");
+						return false;
+					}
+					if(data[0].request.length>parseInt(req.body.id,10)){
+						console.log(data[0].request[parseInt(req.body.id,10)]);
+						var you=new mongoose.Types.ObjectId(req.session.user.id);
+						var friend = new mongoose.Types.ObjectId(data[0].request[parseInt(req.body.id,10)].toString());
+						database.user.update({_id:data[0].request[parseInt(req.body.id,10)].toString()},{$push:{friends:you}},{safe: true, upsert: true, new : true},function(){
+							console.log("Added you to their friendslist");
+						});
+						data[0].request.splice(parseInt(req.body.id,10),1);
+						database.user.update({_id:req.session.user.id},{$push:{friends:friend},request:data[0].request},{safe: true, upsert: true, new : true},function(){
+							console.log("Added them to your friendslist");
+						});
+						var body="Added to your <a href='/users/"+req.session.user.username+"/friends'>Friends List</a>";
+						parser("fullwidth.html",{"%%title%%":"Added to friends list","%%content%%":body,"%%username%%":req.session.user?"/users/"+req.session.user.username:"/login/"},function(err, html){
+							res.send(html);
+						});
+						ret = true;
+					} else{
+						res.status(403);
+						res.redirect("/403/");
+					}
+				});
+			} else {
+				res.status(403);
+				res.redirect("/403/");
+			}
+		} else {
+			res.status(403);
+			res.redirect("/403/");
+		}
+		return false;
+	});
 	router.get("/users/:id",function(req, res){
 		var body="";
 		database.user.find({username:req.params.id}).populate("friends").exec(function(err, data){
@@ -10,13 +60,26 @@ module.exports=function(database,settings){
 				body+="Error finding "+req.params.id;
 			} else {
 				if(data.length>=1){
-					if(req.session.user)
-						if(req.session.user.username != req.params.id)
+					if(req.session.user){
+						var filter = data[0].friends.filter(function(match){return match.username==req.session.user.username;});
+						console.log(filter);
+						var requestSent=false;
+						for(var x=0;x<data[0].request.length;x++){
+							if(data[0].request[x].toString()==req.session.user.id)
+								requestSent=true;
+						}
+						if(req.session.user.username != req.params.id && filter.length<=0 && !requestSent)
 							body+="<form method='POST'><button class='btn btn-primary'>Add Friend</button></form>";
+						else if (filter.length>0)
+							body+="<h3>Friend</h3>";
+						else if (requestSent){
+							body+="<h3>Request Sent</h3>";
+						}
+					}
 					console.log(data);
 					var genders=["Male", "Female", "Transgendered", "Otherkin"];
 					body+="<h1>"+data[0].username+"</h1>";
-					body+="<h2>"+data[0].about.firstName+" "+data[0].about.lastName+"</h2>";
+					body+="<h2>"+data[0].about.firstName+" "+data[0].about.lastName+"</h2><a href='/users/"+data[0].username+"/friends'>Friends</a>";
 					body+="<div style='margin-left:20px;'>";
 						body+="<h2>Gender</h2><p>"+genders[parseInt(data[0].about.gender,10)-1]+"</p>";
 						body+=(data[0].about.location.length<=1)?"":"<h2>Location</h2><p>"+data[0].about.location+"</p>";
@@ -46,11 +109,26 @@ module.exports=function(database,settings){
 				if(data.length>=1){
 					console.log(data);
 					if(req.session.user){
-						console.log(data[0].friends);
 						var filter = data[0].friends.filter(function(match){return match.username==req.session.user.username;});
-						console.log(filter);
 						if(filter.length<1){
-							body+="You have requested "+req.params.id+"'s friendship. c:";
+							var friendrequest=new mongoose.Types.ObjectId(req.session.user.id);
+							var requestSent=false;
+							for(var x=0;x<data[0].request.length;x++){
+								if(data[0].request[x].toString()==req.session.user.id){
+									console.log(data[0].request[x].toString());
+									console.log(req.session.user.id);
+									requestSent=true;
+								}
+							}
+							data[0].request.push(friendrequest);
+							if(requestSent){
+								body+="You already requested "+req.params.id+"'s friendship. :c";
+							} else {
+								body+="You have requested "+req.params.id+"'s friendship. c:";
+								database.user.update({username:req.params.id},{request:data[0].request},function(){
+
+								});
+							}
 						} else if (req.session.user.username==req.params.id){
 							body+="You must have low self esteem to friend yourself. You should try taking a walk in the park, a nice long shower, or leaving the house in general.";
 						} else {
@@ -70,11 +148,34 @@ module.exports=function(database,settings){
 			});
 		});
 	});
-	router.get("/users/",function(req, res){
-		database.user.find().populate("friends").exec(function(err, data){
-			console.log(data);
-		});
-		res.send("Sent ;D");
+
+	router.get("/users/:id/friends",function(req, res){
+		if(req.session.user){
+			var body="";
+			database.user.find({username:req.params.id}).populate("friends").exec(function(err, data){
+				if(err){
+					body+="Error finding "+req.params.id;
+				} else {
+					if(data.length>=1){
+						console.log(data);
+						body+="<h1>"+data[0].username+"'s friends</h1><div class='row'>";
+						for(var i=0;i<data[0].friends.length;i++){
+							body+="<div class='col-md-3 col-sm-6'><h4><a href='/users/"+data[0].friends[i].username+"''>"+data[0].friends[i].username+"</h4></a></div>";
+						}
+						body+="</div>";
+					} else {
+						body+="Error finding "+req.params.id;
+					}
+				}
+				parser("fullwidth.html",{"%%title%%":req.params.id,"%%content%%":body,"%%username%%":req.session.user?"/users/"+req.session.user.username:"/login/"},function(err, data){
+					res.send(data);
+				});
+			});
+		} else {
+			res.status(403);
+			res.redirect("/login/");
+			return false;
+		}
 	});
 
 	return router;
