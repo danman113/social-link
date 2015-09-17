@@ -36,8 +36,9 @@ module.exports=function(database, settings){
 		var text="";
 		database.user.find({},function(err, data){
 			console.log(data);
+			text+="<script src='/public/js/admin.js'></script>";
 			for(var i=0;i<data.length;i++){
-				text+='<div class="media"><div class="media-left"><div class="media-body"><h4 class="media-heading"><a class="btn btn-primary" href="/admin/promote/'+data[i].username+'">Promote</a> <a href="/users/'+data[i].username+'">'+data[i].username+"</a></h4></div></div></div>";
+				text+='<div class="media"><div class="media-left"><div class="media-body"><h4 class="media-heading"><a class="btn btn-primary" href="/admin/promote/'+data[i].username+'">Promote</a> <button class="btn btn-danger" id="'+data[i].username+'" name="remove">X</button> <a href="/users/'+data[i].username+'">'+data[i].username+"</a></h4></div></div></div>";
 			}
 			parser("fullwidth.html",{"%%title%%":"admin panel","%%username%%":req.session.user?"/users/"+req.session.user.username:"/login/","%%content%%":text},function(err, data){
 				res.send(data);
@@ -54,10 +55,20 @@ module.exports=function(database, settings){
 			res.redirect("/admin/search");
 		});
 	});
+	router.delete("/admin/promote/:id",function(req, res){
+		console.log("Deleting user "+req.params.id);
+		database.user.find({username:req.params.id}).remove().exec(function(err, data){
+			if(!err){
+				res.send({"success":1})
+			} else {
+				res.send({"success":0})
+			}
+		});
+	});
 	router.get("/admin/destroy",function(req, res){
 		database.user.find({}).remove().exec(function(err, data){
 			console.log("Destoryed database");
-			res.redirect("/signup/");
+			res.redirect("/logout/");
 		});
 	});
 	router.get("/promote/:id",function(req, res){

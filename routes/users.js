@@ -10,16 +10,43 @@ module.exports=function(database,settings){
 		});
 		res.send("Sent ;D");
 	});
-
-	router.post("/users/",function(req, res){
-		var ret=false;
+	router.delete("/users/",function(req, res){
+		var json={"success":0};
 		if(req.session.user){
 			console.log(req.body);
 			if (req.body.id){
 				database.user.find({username:req.session.user.username},function(err, data){
 					if (err){
-						res.status(403);
-						res.redirect("/403/");
+						res.send(json);
+						return false;
+					}
+					if(data[0].request.length>parseInt(req.body.id,10)){
+						console.log(data[0].request[parseInt(req.body.id,10)]);
+						data[0].request.splice(parseInt(req.body.id,10),1);
+						database.user.update({_id:req.session.user.id},{request:data[0].request},function(){
+							json.success=1;
+							res.send(json);
+						});
+					} else{
+						res.send(json);
+					}
+				});
+			} else {
+				res.send(json);
+			}
+		} else {
+			res.send(json);
+		}
+		return false;
+	});
+	router.post("/users/",function(req, res){
+		var json={"success":0};
+		if(req.session.user){
+			console.log(req.body);
+			if (req.body.id){
+				database.user.find({username:req.session.user.username},function(err, data){
+					if (err || data.length<=0){
+						res.send(json);
 						return false;
 					}
 					if(data[0].request.length>parseInt(req.body.id,10)){
@@ -33,23 +60,17 @@ module.exports=function(database,settings){
 						database.user.update({_id:req.session.user.id},{$push:{friends:friend},request:data[0].request},{safe: true, upsert: true, new : true},function(){
 							console.log("Added them to your friendslist");
 						});
-						var body="Added to your <a href='/users/"+req.session.user.username+"/friends'>Friends List</a>";
-						parser("fullwidth.html",{"%%title%%":"Added to friends list","%%content%%":body,"%%username%%":req.session.user?"/users/"+req.session.user.username:"/login/"},function(err, html){
-							res.send(html);
-						});
-						ret = true;
+						json.success=1;
+						res.send(json);
 					} else{
-						res.status(403);
-						res.redirect("/403/");
+						res.send(json);
 					}
 				});
 			} else {
-				res.status(403);
-				res.redirect("/403/");
+				res.send(json);
 			}
 		} else {
-			res.status(403);
-			res.redirect("/403/");
+			res.send(json);
 		}
 		return false;
 	});

@@ -7,12 +7,16 @@ module.exports=function(database, settings){
 		var body="";
 		if(req.session.user){
 			database.user.find({_id:req.session.user.id}).populate("friends").populate("request").exec(function(err, data){
+				if(data.length<=0){
+					res.status(403);
+					res.redirect("/logout/");
+				}
 				console.log(data[0].request);
 				if(data[0].request.length>=1){
-					body+="<h1>Friend Requests</h1>";
+					body+="<h1 id='request'>Friend Requests</h1>";
 					for(var i=0;i<data[0].request.length;i++){
 						console.log(data[0].request[i]);
-						body+='<div class="media"><div class="media-left"><div class="media-body"><h4 class="media-heading"><form method="POST" action="/users/"><input type="hidden" name="id" value="'+i+'"/><button class="btn btn-primary" type="submit">Add Friend</button></form> <a href="/users/'+data[0].request[i].username+'">'+data[0].request[i].username+"</a></h4></div></div></div>";
+						body+='<div class="media" name="request"><div class="media-left"><div class="media-body"><h4 class="media-heading"><button name="'+i+'" class="btn btn-primary add" type="submit">Add Friend</button> <button name="'+i+'" class="btn btn-danger remove" type="submit">X</button></form> <a href="/users/'+data[0].request[i].username+'">'+data[0].request[i].username+"</a></h4></div></div></div>";
 					}
 				}
 				parser("feed.html",{"%%username%%":req.session.user.username,"%%request%%":body},function(err, html){
