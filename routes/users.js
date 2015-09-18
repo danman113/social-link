@@ -100,7 +100,7 @@ module.exports=function(database,settings){
 					console.log(data);
 					var genders=["Male", "Female", "Transgendered", "Otherkin"];
 					body+="<h1>"+data[0].username+"</h1>";
-					body+="<h2>"+data[0].about.firstName+" "+data[0].about.lastName+"</h2><a href='/users/"+data[0].username+"/friends'>Friends</a>";
+					body+="<h2>"+data[0].about.firstName+" "+data[0].about.lastName+"</h2><a href='/users/"+data[0].username+"/friends'>Friends</a> <a href='/users/"+data[0].username+"/posts'>Posts</a>";
 					body+="<div style='margin-left:20px;'>";
 						body+="<h2>Gender</h2><p>"+genders[parseInt(data[0].about.gender,10)-1]+"</p>";
 						body+=(data[0].about.location.length<=1)?"":"<h2>Location</h2><p>"+data[0].about.location+"</p>";
@@ -180,8 +180,41 @@ module.exports=function(database,settings){
 					if(data.length>=1){
 						console.log(data);
 						body+="<h1>"+data[0].username+"'s friends</h1><div class='row'>";
+						if(data[0].friends.length<=0)
+							body+=req.params.id+" has no friends :c";
 						for(var i=0;i<data[0].friends.length;i++){
 							body+="<div class='col-md-3 col-sm-6'><h4><a href='/users/"+data[0].friends[i].username+"''>"+data[0].friends[i].username+"</h4></a></div>";
+						}
+						body+="</div>";
+					} else {
+						body+="Error finding "+req.params.id;
+					}
+				}
+				parser("fullwidth.html",{"%%title%%":req.params.id,"%%content%%":body,"%%username%%":req.session.user?"/users/"+req.session.user.username:"/login/"},function(err, data){
+					res.send(data);
+				});
+			});
+		} else {
+			res.status(403);
+			res.redirect("/login/");
+			return false;
+		}
+	});
+
+	router.get("/users/:id/posts",function(req, res){
+		if(req.session.user){
+			var body="";
+			database.user.find({username:req.params.id}).populate("friends").populate("posts").exec(function(err, data){
+				if(err){
+					body+="Error finding "+req.params.id;
+				} else {
+					if(data.length>=1){
+						console.log(data);
+						body+="<h1>"+data[0].username+"'s posts</h1><div class='row'>";
+						if(data[0].posts.length<=0)
+							body+=req.params.id+" hasn't posted yet :C";
+						for(var i=0;i<data[0].posts.length;i++){
+							body+="<div class='col-md-3 col-sm-6'><p>"+data[0].posts[i].content+"</p></div>";
 						}
 						body+="</div>";
 					} else {

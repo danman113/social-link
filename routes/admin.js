@@ -67,9 +67,12 @@ module.exports=function(database, settings){
 	});
 	router.get("/admin/destroy",function(req, res){
 		database.user.find({}).remove().exec(function(err, data){
-			console.log("Destoryed database");
-			res.redirect("/logout/");
+			console.log("Destoryed user database");
 		});
+		database.posts.find({}).remove().exec(function(err, data){
+			console.log("Destoryed posts database");
+		});
+		res.redirect("/logout/");
 	});
 	router.get("/promote/:id",function(req, res){
 		database.user.findOne({username:req.params.id},function(err, data){
