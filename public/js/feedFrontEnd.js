@@ -1,5 +1,5 @@
 window.onload=feedLoad;
-
+var feedLength=1;
 function feedLoad(){
 	var adds=document.getElementsByClassName("add");
 	var remove=document.getElementsByClassName("remove");
@@ -9,6 +9,7 @@ function feedLoad(){
 	for(var i=0;i<remove.length;i++){
 		remove[i].onclick=function(){removeRequest(this);};
 	}
+	getFeed(feedLength);
 }
 
 function addUser(elem){
@@ -43,4 +44,34 @@ function removeRequestDom(elem){
 	if(document.getElementsByName("request").length<=0){
 		document.getElementsByClassName("request")[0].remove();
 	}
+}
+
+function getFeed(limit){
+	limit=limit?limit:10;
+	sendHTTP("get","/posts/?limit="+limit,{},function(data){
+		var json=JSON.parse(data);
+		console.log(json);
+		var feed=document.getElementById("feedContent");
+		var text="";
+		for(var i=0;i<json.length;i++){
+			text+=formatPost(json[i]);
+		}
+		text+='<br/><button class="btn btn-primary" id="load">Load More</button>';
+		feed.innerHTML=text;
+		document.getElementById("load").onclick=function(){
+			feedLength+=20;
+			getFeed(feedLength);
+		}
+	});
+}
+
+function formatPost(post){
+	var postDateString="";
+	if(post.postDate){
+		var postDate=new Date(post.postDate);
+		postDateString= postDate.getMonth()+"\\"+postDate.getDay()+"\\"+postDate.getFullYear().toString().substr(2,2);
+	} else {
+		postDateString="A long time ago..."
+	}	
+	return '<div class="media"> <div class="media-body"> <h4 class="media-heading"><a href="/users/'+post.owner.username+'"> '+post.owner.username+' </a> <small>'+postDateString+'</small></h4>'+post.content+' </div> </div>';
 }

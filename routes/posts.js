@@ -6,18 +6,21 @@ var mongoose = require("mongoose");
 module.exports=function(database,settings){
 	router.get("/posts",function(req, res, next){
 		if(req.session.user){
-			//feed code
 			database.user.findOne({_id:req.session.user.id}).populate("friends").exec(function(err, you){
-				console.log(you);
-				database.posts.find({owner:{$in:you.friends}}).sort({postDate:-1}).exec(function(err, data){
-					console.log(data);
+				if(!you){
+					res.send([]);
+					return false;
+				}
+				var limit = 20;
+				if(req.query.limit)
+					limit=parseInt(req.query.limit,10);
+				database.posts.find({owner:{$in:you.friends}}).limit(limit).sort({postDate:-1}).populate({path:"owner",select:"username _id"}).exec(function(err, data){
 					res.send(data);
 				});
 			});
 			
 		} else {
-			res.status(403);
-			res.redirect("/login/");
+			res.send([]);
 		}
 	});
 
@@ -36,7 +39,6 @@ module.exports=function(database,settings){
 				var postId=new mongoose.Types.ObjectId(post._id);
 				post.save();
 				database.user.update({_id:req.session.user.id},{$push:{posts:postId}},{safe: true, upsert: true, new : true},function(err, data){
-					console.log(post._id);
 				});
 				res.redirect("/feed/");
 				//res.send("Posted data");
@@ -50,11 +52,21 @@ module.exports=function(database,settings){
 		res.redirect("/feed/");
 	});
 	router.get("/posts/:id",function(req, res, next){
+		var body="";
 		if(req.session.user){
-			
+			database.posts.findOne({_id:req.params.id}).populate({path:"owner",select:"username _id"}).exec(function(err, data){
+				if(data){
+					body+="<a href='/users/"+data.owner.username+"'><h2>"+data.owner.username+"</h2></a><p>"+data.content+"</p>";
+				} else {
+					body+="Not found";
+				}
+				parser("fullwidth.html",{"%%title%%":data.owner.username+"'s post","%%content%%":body,"%%username%%":req.session.user?"/users/"+req.session.user.username:"/login/"},function(err, html){
+					res.send(html);
+				});
+			});
 		} else {
 			res.status(403);
-			res.redirect("login");
+			res.redirect("/login/");
 		}
 	});
 	router.put("/posts/:id",function(req, res, next){

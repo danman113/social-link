@@ -83,7 +83,6 @@ module.exports=function(database,settings){
 				if(data.length>=1){
 					if(req.session.user){
 						var filter = data[0].friends.filter(function(match){return match.username==req.session.user.username;});
-						console.log(filter);
 						var requestSent=false;
 						for(var x=0;x<data[0].request.length;x++){
 							if(data[0].request[x].toString()==req.session.user.id)
@@ -97,7 +96,6 @@ module.exports=function(database,settings){
 							body+="<h3>Request Sent</h3>";
 						}
 					}
-					console.log(data);
 					var genders=["Male", "Female", "Transgendered", "Otherkin"];
 					body+="<h1>"+data[0].username+"</h1>";
 					body+="<h2>"+data[0].about.firstName+" "+data[0].about.lastName+"</h2><a href='/users/"+data[0].username+"/friends'>Friends</a> <a href='/users/"+data[0].username+"/posts'>Posts</a>";
@@ -128,7 +126,6 @@ module.exports=function(database,settings){
 				body+="Error finding "+req.params.id;
 			} else {
 				if(data.length>=1){
-					console.log(data);
 					if(req.session.user){
 						var filter = data[0].friends.filter(function(match){return match.username==req.session.user.username;});
 						if(filter.length<1){
@@ -178,7 +175,6 @@ module.exports=function(database,settings){
 					body+="Error finding "+req.params.id;
 				} else {
 					if(data.length>=1){
-						console.log(data);
 						body+="<h1>"+data[0].username+"'s friends</h1><div class='row'>";
 						if(data[0].friends.length<=0)
 							body+=req.params.id+" has no friends :c";
@@ -204,17 +200,16 @@ module.exports=function(database,settings){
 	router.get("/users/:id/posts",function(req, res){
 		if(req.session.user){
 			var body="";
-			database.user.find({username:req.params.id}).populate("friends").populate("posts").exec(function(err, data){
+			database.user.find({username:req.params.id}).populate("posts").exec(function(err, data){
 				if(err){
 					body+="Error finding "+req.params.id;
 				} else {
 					if(data.length>=1){
-						console.log(data);
 						body+="<h1>"+data[0].username+"'s posts</h1><div class='row'>";
 						if(data[0].posts.length<=0)
 							body+=req.params.id+" hasn't posted yet :C";
 						for(var i=0;i<data[0].posts.length;i++){
-							body+="<div class='col-md-3 col-sm-6'><p>"+data[0].posts[i].content+"</p></div>";
+							body+="<div class='col-md-3 col-sm-6'><p><a href=/posts/"+data[0].posts[i]._id+">"+data[0].posts[i].content+"</a></p></div>";
 						}
 						body+="</div>";
 					} else {
