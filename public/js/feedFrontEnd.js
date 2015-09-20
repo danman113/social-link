@@ -1,5 +1,5 @@
 window.onload=feedLoad;
-var feedLength=1;
+var feedLength=10;
 function feedLoad(){
 	var adds=document.getElementsByClassName("add");
 	var remove=document.getElementsByClassName("remove");
