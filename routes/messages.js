@@ -99,7 +99,7 @@ module.exports=function(database,settings){
 						console.log(data.contents[i]);
 						text+=formatMessage(data.contents[i],data.recipients);
 					}
-					text+='<br/>form method="POST" class="form-inline"> <textarea class="form-control" name="content" placeholder="content"></textarea><br/><br/> <input type="submit" class="btn btn-primary" /> </form>';
+					text+='<br/><form method="POST" class="form-inline"> <textarea class="form-control" name="content" placeholder="content"></textarea><br/><br/> <input type="submit" class="btn btn-primary" /> </form>';
 				}
 				parser("fullwidth.html",{"%%title%%":"Messages","%%username%%":req.session.user?"/users/"+req.session.user.username:"/login/","%%content%%":text},function(err, data){
 					res.send(data);
