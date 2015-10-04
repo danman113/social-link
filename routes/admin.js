@@ -72,7 +72,21 @@ module.exports=function(database, settings){
 		database.posts.find({}).remove().exec(function(err, data){
 			console.log("Destoryed posts database");
 		});
+		database.message.find({}).remove().exec(function(err, data){
+			console.log("Destoryed posts database");
+		});
 		res.redirect("/logout/");
+	});
+	router.get("/admin/destroy/messages",function(req, res){
+		database.message.find({}).remove().exec(function(err, data){
+			console.log("Destoryed posts database");
+		});
+		res.redirect("/logout/");
+	});
+	router.get("/admin/messages",function(req, res){
+		database.message.find({}).exec(function(err, data){
+			res.send(data);
+		});
 	});
 	router.get("/promote/:id",function(req, res){
 		database.user.findOne({username:req.params.id},function(err, data){

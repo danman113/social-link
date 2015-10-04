@@ -22,9 +22,14 @@ module.exports=function(database,settings){
 		});
 	});
 	router.get("/signup/",function(req, res){
-		parser("signup.html",{}, function(err,data){
-			res.send(data);
-		});
+		if(!req.session.user){
+			parser("signup.html",{}, function(err,data){
+				res.send(data);
+			});
+		} else {
+			res.status(403);
+			res.redirect("/403/signup");
+		}
 	});
 	router.post("/signup/",function(req, res){
 		req.body.username=(/\w+/g).exec(req.body.username)[0].toLowerCase().trim();
