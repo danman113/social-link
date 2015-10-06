@@ -34,7 +34,6 @@ module.exports=function(database,settings){
 		}
 	});
 	router.post("/messages",function(req, res, next){
-		res.send(req.body);
 		if(req.session.user){
 			//parses to field to an array of recipient strings
 			var to = req.body.to.split(/\s*[;,]\s*/);
@@ -69,7 +68,7 @@ module.exports=function(database,settings){
 									{$push:{messages:{message:messageID,viewed:false}}},
 									{safe: true, upsert: true, new : true, multi: true},
 									function(err, data){
-
+										res.redirect("/messages/view/"+messageID);
 									}
 				);
 			});
@@ -90,11 +89,11 @@ module.exports=function(database,settings){
 					text = "No Message with that ID found";
 				else {
 					text+="<h2>"+data.subject+"<h2>";
-					text+="<h3>Original Sender: <a href='"+data.sender+"'>"+data.sender+"</a></h3>";
-					text+="<h4>Recipients: "
+					text+="<h3>Original Sender: <a href='/users/"+data.sender+"'>"+data.sender+"</a></h3>";
+					text+="<h4>Recipients: ";
 					for(var i=0;i<data.recipients.length;i++)
-						text+="<a href="+data.recipients[i].username+">"+data.recipients[i].username+"</a> ";
-					text+="</h4>"
+						text+="<a href='/users/"+data.recipients[i].username+"'>"+data.recipients[i].username+"</a> ";
+					text+="</h4>";
 					for(var i=0;i<data.contents.length;i++){
 						console.log(data.contents[i]);
 						text+=formatMessage(data.contents[i],data.recipients);
@@ -147,7 +146,7 @@ module.exports=function(database,settings){
 			console.log(postDate.getMonth());
 			postDateString = (postDate.getMonth()+1)+"\\"+postDate.getDate()+"\\"+postDate.getFullYear().toString().substr(2,2)+" "+(postDate.getHours()+1)+":"+((postDate.getUTCMinutes()+1)<10?+"0"+(postDate.getUTCMinutes()+1).toString():(postDate.getUTCMinutes()+1).toString());
 		} else {
-			postDateString = "A long time ago..."
+			postDateString = "A long time ago...";
 		}	
 		return '<div class="media"> <div class="media-body"> <h4 class="media-heading"><a href="/users/'+recipients[message.from].username+'"> '+recipients[message.from].username+' </a> <small>'+postDateString+'</small></h4>'+message.message+' </div> </div>';
 	}

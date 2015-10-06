@@ -19,7 +19,7 @@ function addUser(elem){
 		if(json.success){
 			var name = elem.parentElement.children[2].innerHTML;
 			removeRequestDom(elem);
-			var id=(new Date).getTime();
+			var id=(new Date()).getTime();
 			var notification = '<div id="'+id+'" style="padding-bottom:10px;display:none;" class="alert alert-success" id="attempts" role="alert"><strong>Added '+name+' to friends list</strong></div>';
 			$(".notifications").append(notification);
 			$("#"+id).fadeIn(500);
@@ -61,17 +61,20 @@ function getFeed(limit){
 		document.getElementById("load").onclick=function(){
 			feedLength+=20;
 			getFeed(feedLength);
-		}
+		};
 	});
 }
 
 function formatPost(post){
 	var postDateString="";
+	var formatDate = function (date){
+		return (date.getMonth()+1)+"\\"+date.getDate()+"\\"+date.getFullYear().toString().substring(2,4);
+	};
 	if(post.postDate){
 		var postDate=new Date(post.postDate);
-		postDateString= postDate.getMonth()+"\\"+postDate.getDay()+"\\"+postDate.getFullYear().toString().substr(2,2);
+		postDateString = formatDate(postDate);
 	} else {
-		postDateString="A long time ago..."
+		postDateString="A long time ago...";
 	}	
-	return '<div class="media"> <div class="media-body"> <h4 class="media-heading"><a href="/users/'+post.owner.username+'"> '+post.owner.username+' </a> <small>'+postDateString+'</small></h4>'+post.content+' </div> </div>';
+	return '<div class="media"> <div class="media-body"> <h4 class="media-heading"><a href="/users/'+post.owner.username+'"> '+post.owner.username+' </a> <small>'+postDateString+' <a href="/posts/'+post._id+'">#</a></small></h4>'+post.content+' </div> </div>';
 }

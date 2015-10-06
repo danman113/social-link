@@ -4,6 +4,9 @@ var crypto = require("crypto");
 var parser = require("../lib/viewParser.js");
 var mongoose = require("mongoose");
 module.exports=function(database,settings){
+	function formatDate(date){
+		return (date.getMonth()+1)+"\\"+date.getDate()+"\\"+date.getFullYear().toString().substring(2,4);
+	}
 	router.get("/posts",function(req, res, next){
 		if(req.session.user){
 			database.user.findOne({_id:req.session.user.id}).populate("friends").exec(function(err, you){
@@ -34,7 +37,7 @@ module.exports=function(database,settings){
 					postDate:new Date(),
 					owner:you,
 					likes:[]
-				}
+				};
 				var post = new database.posts(postSchema);
 				var postId=new mongoose.Types.ObjectId(post._id);
 				post.save();
@@ -56,7 +59,7 @@ module.exports=function(database,settings){
 		if(req.session.user){
 			database.posts.findOne({_id:req.params.id}).populate({path:"owner",select:"username _id"}).exec(function(err, data){
 				if(data){
-					body+="<a href='/users/"+data.owner.username+"'><h2>"+data.owner.username+"</h2></a><p>"+data.content+"</p>";
+					body+="<a href='/users/"+data.owner.username+"'><h2>"+data.owner.username+"</h2></a><small>"+formatDate(data.postDate)+"</small><p>"+data.content+"</p>";
 				} else {
 					body+="Not found";
 				}
